@@ -32,11 +32,11 @@ class Agent:
         actions = []
         next_states = []
         log_probs = []
-        state = self.env.reset()  # initialize state, a 1x4 array
+        state = self.env.reset()  
         done = False
         while not done:
             action, log_prob = self._choose_action(state)  
-            next_state, reward, done, _ = self.env.step(action)
+            next_state, reward, done, distance = self.env.step(action)
             # start recording
             states.append(state)
             rewards.append(reward)
@@ -45,7 +45,7 @@ class Agent:
             log_probs.append(log_prob)
             state = next_state
         return {"states":states, "rewards": rewards, "actions": actions, 
-                "next_states": next_states, "log_probs": log_probs}, sum(rewards), _
+                "next_states": next_states, "log_probs": log_probs}, sum(rewards), distance
     
     def learn(self, trajectory, EPOCH=5):
         # note this learning function (which has an inner loop) is specifc designed for PPO
