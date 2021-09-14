@@ -9,7 +9,6 @@ A simple test environment. Integrated functionalities include:
 from gym import Env
 from gym.spaces import Discrete, Box
 import numpy as np
-from numpy.lib.npyio import load
 import yaml
 
 def load_env_config():
@@ -33,7 +32,7 @@ class NavigationPro(Env):
         self.obstacles = obstacles
         self.action_space = Discrete(8)
         self.observation_space = Box(low=np.array([0,0]), high=np.array([10,10])) if not see_goal else  Box(low=np.array([0,0,0,0]), high=np.array([10,10,10,10]))
-        self.state =  np.array([4.9,4.9]) if not see_goal else np.array([4.9,4.9,self.goal[0], self.goal[1]])
+        self.state =  np.array([9.9,9.9]) if not see_goal else np.array([9.9,9.9,self.goal[0], self.goal[1]])
         self.episode_length = 100
         self.action_dict = {"0":(0,0.1),"1":(0.1,0.1),"2":(0.1,0),"3":(0.1,-0.1),"4":(0,-0.1),"5":(-0.1,-0.1),"6":(-0.1,0),"7":(-0.1,0.1)}
         self.adsorption = False
@@ -110,7 +109,7 @@ class NavigationPro(Env):
         self.reward = (-self.distance) 
 
     def reset(self):
-        self.state =  np.array([4.9,4.9]) if not self.see_goal else np.array([4.9,4.9,self.goal[0], self.goal[1]])
+        self.state =  np.array([9.9,9.9]) if not self.see_goal else np.array([9.9,9.9,self.goal[0], self.goal[1]])
         self.episode_length = 100
         self.end = False
         self.adsorption = False

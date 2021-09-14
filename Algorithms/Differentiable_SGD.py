@@ -17,7 +17,7 @@ class DifferentiableSGD:
         lr (float): Learning rate of stochastic gradient descent.
     """
 
-    def __init__(self, module, lr=1e-3):
+    def __init__(self, module, lr=0.0005):
         self.module = module
         self.lr = lr
 

@@ -1,9 +1,7 @@
-"""
 # time: 09/09/2021
 # update: /
 # author: Bobby
-We defined the obstacles in the environment line by line.
-"""
+# We defined the obstacles in the environment line by line.
 
 None:
   - []
