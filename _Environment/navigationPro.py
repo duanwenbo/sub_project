@@ -33,6 +33,7 @@ class NavigationPro(Env):
         self.action_space = Discrete(8)
         self.observation_space = Box(low=np.array([0,0]), high=np.array([10,10])) if not see_goal else  Box(low=np.array([0,0,0,0]), high=np.array([10,10,10,10]))
         self.state =  np.array([9.9,9.9]) if not see_goal else np.array([9.9,9.9,self.goal[0], self.goal[1]])
+        self.previous_state = 0.
         self.episode_length = 100
         self.action_dict = {"0":(0,0.1),"1":(0.1,0.1),"2":(0.1,0),"3":(0.1,-0.1),"4":(0,-0.1),"5":(-0.1,-0.1),"6":(-0.1,0),"7":(-0.1,0.1)}
         self.adsorption = False
@@ -86,21 +87,31 @@ class NavigationPro(Env):
             else:
                 if self.adsorption:
                     """just stop moving and wait until the end of episode"""
-                    pass
+                    self.state = self.previous_state
                 else:
                     func(*args,**kwargs)
                     self._detect_obstacles()
-            
+
+                # func(*args,**kwargs)
+                # self._detect_obstacles()
+                # if self.adsorption:
+                #     """if this step update is invalid, the point will rebond"""
+                #     self.state = self.previous_state
+
             if self.distance <= 0.02:
                 """if the point reached the boundary around the goal, let it stop and reset the punishment(self.reward)"""
-                self.adsorption = True
+                self.end = True
                 self.reward = 0
+            if self.state[0] <0 or self.state[0] > 10 or self.state[1] <0 or self.state[1] > 10:
+                # self.end = True
+                self.reward = -800
             return np.array(self.state), self.reward, self.end, self.distance
         return wrapper
     
     @ _detect_stop
     def step(self, action):
         x_increment, y_increment = self.action_dict[str(action)][0], self.action_dict[str(action)][1]
+        self.previous_state = self.state
         if self.see_goal:
             self.state = (self.state[0]+ x_increment, self.state[1]+y_increment, self.goal[0], self.goal[1])
         else:
@@ -119,4 +130,6 @@ class NavigationPro(Env):
         pass
 
 if __name__ == "__main__":
-    pass
+    state = np.array([1,1])
+    b = np.array([state[0]-1, state[1]-1])
+    print(type(b))

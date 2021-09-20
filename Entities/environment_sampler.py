@@ -8,18 +8,21 @@ import sys
 sys.path.append("/home/gamma/wb_alchemy/sub_project/")
 import random
 from _Environment.navigationPro import NavigationPro
+from _Environment.navigation import Navigation_v0
+
 import gym
 
 class Environment_sampler:
-    def __init__(self, see_goal=False, obstacles="None") -> None:
+    def __init__(self, see_goal, obstacles) -> None:
         self.see_goal = see_goal
         self.obstacles = obstacles
         self.env = NavigationPro
-        # random.seed(234)  # 128
+        random.seed(234)  # 128
 
-    def single_env(self, goal=(0.1,0.1)):
+    def single_env(self, goal):
         """for a single env test in reinforcement learning"""
         env = self.env(goal, self.see_goal, self.obstacles)
+        # env = self.env(goal=goal, see_goal=self.see_goal, obstacles=self.obstacles)
         return env
     
     def single_env_gym(env="CartPole-v1"):
