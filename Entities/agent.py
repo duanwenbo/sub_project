@@ -4,12 +4,17 @@
 # author: Bobby
 The agent in a single reinforcement learning environment
 """
+import sys
 
+from torch.distributions.utils import probs_to_logits
+sys.path.append("/home/gamma/wb_alchemy/sub_project/")
 import torch
 from torch.distributions import Categorical
 from Algorithms.PPO import PPO
 from Algorithms.Differentiable_SGD import DifferentiableSGD
-
+import matplotlib.pyplot as plt
+import yaml
+from matplotlib.pyplot import figure
 class RLAgent:
     """for reinforcement learning"""
     def __init__(self, critic_net, actor_net, env, device, LEARNING_RATE, algo=PPO) -> None:
@@ -66,6 +71,34 @@ class RLAgent:
             self.critic_net_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_net_optimizer.step()
+    
+    def visualize(self, trajectory, name):
+        # load environment config
+        with open("/home/gamma/wb_alchemy/sub_project/Configuration/environment.yml","r") as f:
+            config = yaml.load(f.read())
+
+        # draw environment   
+        plt.axis([0,10,0,10])
+        obstacles = config["{}".format(self.env.obstacles)]
+        x,y=[],[]
+        for obstacle in obstacles:
+            x.extend([i[0] for i in obstacle])
+            y.extend(i[1] for i in obstacle)
+        for i in range(0,len(x),2):
+            plt.plot(x[i:i+2], y[i:i+2],'k')
+        
+        # draw goal
+        goal = self.env.goal
+        plt.scatter(goal[0], goal[1], "*", "r")
+
+        # plot trajectory
+        states = trajectory["states"]
+        x = [state[0] for state in states]
+        y = [state[1] for state in states]
+        plt.scatter(x,y,"y")
+        plt.savefig("{}.png".format(name))
+        
+
     
 
 
@@ -136,4 +169,75 @@ class MetaAgent:
         actor_loss = algorithm.actor_loss(old_probs)
         return actor_loss
 
-           
+
+class TestAgent:
+    def __init__(self, critic_net, actor_net, env, device) -> None:
+            self.critic_net = critic_net.to(device)
+            self.actor_net = actor_net.to(device)
+            self.device = device
+            self.env = env 
+    
+    def _choose_action(self,state):
+        state = torch.as_tensor(state, dtype=torch.float32).to(self.device)
+        dist = Categorical(self.actor_net(state))
+        action = dist.sample()
+        return action.item()
+    
+    def play(self):
+        state = self.env.reset()  
+        done = False
+        states = []
+        rewards = []
+        actions = []
+        next_states = []
+        while not done:
+            action = self._choose_action(state)  
+            next_state, reward, done, distance = self.env.step(action)
+            # start recording
+            states.append(state)
+            rewards.append(reward)
+            actions.append(action)
+            next_states.append(next_state)
+            state = next_state
+        return {"states":states, "rewards": rewards, "actions": actions, 
+                "next_states": next_states}, sum(rewards), distance
+    
+    def visualize(self, trajectory, name, marker, color):
+        # load environment config
+        with open("/home/gamma/wb_alchemy/sub_project/Configuration/environment.yml","r") as f:
+            config = yaml.load(f.read())
+
+        # draw environment   
+        plt.axis([0,10,0,10])
+        obstacles = config["{}".format(self.env.obstacles)]
+        x,y=[],[]
+        for obstacle in obstacles:
+            x.extend([i[0] for i in obstacle])
+            y.extend(i[1] for i in obstacle)
+        for i in range(0,len(x),2):
+            plt.plot(x[i:i+2], y[i:i+2],'k')
+        
+        # draw goal
+        goal = self.env.goal
+        plt.scatter(goal[0], goal[1], c=['#FF0000'], marker="*", s=300)
+
+        # plot trajectory
+        states = trajectory["states"]
+        x = [state[0] for state in states]
+        y = [state[1] for state in states]
+        plt.scatter(x,y,c=color, s=5, marker=marker)
+        
+
+
+if __name__ == "__main__":
+    with open("/home/gamma/wb_alchemy/sub_project/Configuration/environment.yml","r") as f:
+        config = yaml.load(f.read())   
+    obstacles = config["None"]
+    x,y=[],[]
+    for obstacle in obstacles:
+        x.extend([i[0] for i in obstacle])
+        y.extend(i[1] for i in obstacle)
+    plt.axis([0,10,0,10])
+    for i in range(0,len(x),2):
+        plt.plot(x[i:i+2], y[i:i+2],'k')
+    plt.savefig("environment_null.png")
